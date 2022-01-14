@@ -1,0 +1,36 @@
+#!/usr/bin/python
+import os
+import subprocess
+
+if __name__ == '__main__':
+    temperature = subprocess.check_output("nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader", shell=True)
+    temperature = temperature.decode()[:-1]
+
+    # parse options
+    t_warn = 70
+    if 'T_WARN' in os.environ.keys():
+        t_warn = float(os.environ['T_WARN'])
+    t_crit = 90
+    if 'T_CRIT' in os.environ.keys():
+        t_crit = float(os.environ['T_CRIT'])
+    if 'WARN_COLOR' not in os.environ.keys():
+        os.environ['WARN_COLOR'] = "#FFFC00"
+    if 'CRIT_COLOR' not in os.environ.keys():
+        os.environ['CRIT_COLOR'] = "#FF0000"
+
+    warn = False
+    crit = False
+    if float(temperature) > t_crit:
+        crit = True
+    elif float(temperature) > t_warn:
+        warn = True
+
+    temperature += '°C'
+
+    os.system("echo " + temperature)
+    os.system("echo " + temperature)
+    if warn:
+        os.system('echo "' + os.environ['WARN_COLOR'] + '"')
+    elif crit:
+        os.system('echo "' + os.environ['CRIT_COLOR'] + '"')
+
