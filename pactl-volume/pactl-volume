@@ -3,7 +3,8 @@ import os
 import subprocess
 from time import sleep
 
-if __name__ == '__main__':
+
+def execute_block():
     # parse options
     if 'SUBSCRIBE' not in os.environ.keys():
         os.environ['SUBSCRIBE'] = "0"
@@ -11,43 +12,69 @@ if __name__ == '__main__':
         os.environ['WARN_COLOR'] = "#FFFC00"
     if 'CRIT_COLOR' not in os.environ.keys():
         os.environ['CRIT_COLOR'] = "#FF0000"
-
     subbed = (os.environ['SUBSCRIBE'] == "1")
+
     do_once = True
     while do_once or subbed:
         is_mute = subprocess.check_output("pactl get-sink-mute @DEFAULT_SINK@", shell=True)
-        if 'yes' in is_mute.decode():
-            i3blocks_out = "x"  # the mute unicode was conflicting with something on my system :(
-            os.system("echo " + i3blocks_out)
+        is_mute = 'yes' in is_mute.decode()
+
+        # read button clicks
+        try:
+            if not subbed:
+                button = subprocess.check_output("echo $button", shell=True).decode()
+            else:
+                button = subprocess.check_output('read -t .001 button && echo "$button"', shell=True).decode()
+        except:
+            button = ""
+
+        if button == '4\n':
+            os.system('pactl set-sink-volume 0 +5%')
+        elif button == '5\n':
+            os.system('pactl set-sink-volume 0 -5%')
+        elif button == '1\n':
+            os.system('pactl set-sink-mute 0 toggle')
+
+        if is_mute:
+            i3blocks_out = ""
         else:
             i3blocks_out = ""
 
-            output = subprocess.check_output("pactl get-sink-volume @DEFAULT_SINK@", shell=True)
-            output = output.decode().split(' ')
-            channel_volumes = []
-            for val in output:
-                if "%" in val:
-                    channel_volumes.append(float(val[:-1]))
+        output = subprocess.check_output("pactl get-sink-volume @DEFAULT_SINK@", shell=True)
+        output = output.decode().split(' ')
+        channel_volumes = []
+        for val in output:
+            if "%" in val:
+                channel_volumes.append(float(val[:-1]))
 
-            i3blocks_out += " ["
+        i3blocks_out += " ["
 
-            max_chan = max(channel_volumes)
+        max_chan = max(channel_volumes)
 
-            for i in range(10):
-                if max_chan >= (i+1)*10.:
-                    i3blocks_out += "="
-                else:
-                    i3blocks_out += "-"
-
-            i3blocks_out += "]"
-
-            if max_chan > 150.:
-                os.system('echo "<span color=\'' + os.environ['CRIT_COLOR'] + '\'>' + i3blocks_out + '</span>"')
-            elif max_chan > 100.:
-                os.system('echo "<span color=\'' + os.environ['WARN_COLOR'] + '\'>' + i3blocks_out + '</span>"')
+        for i in range(10):
+            if max_chan >= (i + 1) * 10.:
+                i3blocks_out += "="
             else:
-                os.system("echo " + i3blocks_out)
+                i3blocks_out += "-"
+
+        i3blocks_out += "]"
+
+        if max_chan > 150.:
+            os.system('echo "<span color=\'' + os.environ['CRIT_COLOR'] + '\'>' + i3blocks_out + '</span>"')
+        elif max_chan > 100.:
+            os.system('echo "<span color=\'' + os.environ['WARN_COLOR'] + '\'>' + i3blocks_out + '</span>"')
+        else:
+            os.system("echo " + i3blocks_out)
 
         do_once = False
         sleep(.01)
 
+
+if __name__ == '__main__':
+    success = False
+    while not success:
+        try:
+            execute_block()
+            success = True
+        except:
+            continue
