@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import subprocess
+import time
 from time import sleep
 
 
@@ -72,9 +73,12 @@ def execute_block():
 
 if __name__ == '__main__':
     success = False
-    while not success:
+    start = time.time()
+    elapsed = start
+    while elapsed - start < 120 and not success:
         try:
             execute_block()
             success = True
-        except:
+        except Exception as e:
+            elapsed = time.time()
             continue
