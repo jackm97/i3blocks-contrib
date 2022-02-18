@@ -4,6 +4,23 @@ import subprocess
 import time
 from time import sleep
 
+prev_volume = 0
+prev_mute = False
+
+def dunst_notify(volume, subscribe, is_mute, color=None):
+    global prev_volume, prev_mute
+    mute_string = ""
+    if is_mute:
+        mute_string = "\(muted\)"
+    if volume != prev_volume or is_mute != prev_mute or not subscribe:
+        volume = int(volume)
+        if color is not None:
+            os.system(f"dunstify -h int:value:{volume} -h string:hlcolor:'{color}' -h string:x-dunst-stack-tag:volume -t 1500 Volume{mute_string}:")
+        else:
+            os.system(f"dunstify -h int:value:{volume} -h string:x-dunst-stack-tag:volume -t 1500 Volume{mute_string}:")
+    prev_volume = volume
+    prev_mute = is_mute
+
 
 def execute_block():
     # parse options
@@ -37,7 +54,7 @@ def execute_block():
             os.system('pactl set-sink-mute 0 toggle')
 
         if is_mute:
-            i3blocks_out = ""
+            i3blocks_out = ""
         else:
             i3blocks_out = ""
 
@@ -48,24 +65,36 @@ def execute_block():
             if "%" in val:
                 channel_volumes.append(float(val[:-1]))
 
-        i3blocks_out += " ["
-
         max_chan = max(channel_volumes)
+        
+        if max_chan == 0 or is_mute:
+            i3blocks_out = ""
+        elif max_chan < 30:
+            i3blocks_out = ""
+        elif max_chan < 60:
+            i3blocks_out = ""
+        else:
+            i3blocks_out = ""
 
-        for i in range(10):
-            if max_chan >= (i + 1) * 10.:
-                i3blocks_out += "="
-            else:
-                i3blocks_out += "-"
-
-        i3blocks_out += "]"
+        #  i3blocks_out += " ["
+#
+        #  for i in range(10):
+            #  if max_chan >= (i + 1) * 10.:
+                #  i3blocks_out += "="
+            #  else:
+                #  i3blocks_out += "-"
+#
+#        i3blocks_out += "]"
 
         if max_chan > 150.:
             os.system('echo "<span color=\'' + os.environ['CRIT_COLOR'] + '\'>' + i3blocks_out + '</span>"')
+            dunst_notify(max_chan, subbed, is_mute, os.environ['CRIT_COLOR'])
         elif max_chan > 100.:
             os.system('echo "<span color=\'' + os.environ['WARN_COLOR'] + '\'>' + i3blocks_out + '</span>"')
+            dunst_notify(max_chan, subbed, is_mute, os.environ['WARN_COLOR'])
         else:
             os.system("echo " + i3blocks_out)
+            dunst_notify(max_chan, subbed, is_mute)
 
         do_once = False
         sleep(.01)
