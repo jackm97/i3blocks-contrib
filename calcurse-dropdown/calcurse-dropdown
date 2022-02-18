@@ -29,7 +29,9 @@ case "$BLOCK_BUTTON" in
 	#posX=$(($BLOCK_X - $WIDTH / 2))
 	#posY=$(($BLOCK_Y - $HEIGHT))
 
-  i3-msg 'exec --no-startup-id "alacritty --title cal-dropdown -e calcurse" > /dev/null'
+  i3-msg 'exec --no-startup-id gnome-calendar' > /dev/null
+  i3-msg \[class='Gnome-calendar'\] move container to workspace current, focus > /dev/null
+  #i3-msg 'exec --no-startup-id "kitty --title calcurse-dropdown ikhal"' > /dev/null
 esac
 echo "$LABEL$(date "$DATEFMT")"
 echo "$LABEL$(date "$SHORTFMT")"
