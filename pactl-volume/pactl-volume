@@ -97,14 +97,14 @@ def execute_block():
             dunst_notify(max_chan, subbed, is_mute)
 
         do_once = False
-        sleep(.01)
+        sleep(.05)
 
 
 if __name__ == '__main__':
     success = False
     start = time.time()
     elapsed = start
-    while elapsed - start < 120 and not success:
+    while True:
         try:
             execute_block()
             success = True
