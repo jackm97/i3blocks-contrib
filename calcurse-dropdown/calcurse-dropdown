@@ -29,8 +29,13 @@ case "$BLOCK_BUTTON" in
 	#posX=$(($BLOCK_X - $WIDTH / 2))
 	#posY=$(($BLOCK_Y - $HEIGHT))
 
-  i3-msg 'exec --no-startup-id gnome-calendar' > /dev/null
-  i3-msg \[class='Gnome-calendar'\] move container to workspace current, focus > /dev/null
+  if [[ "$DESKTOP_SESSION" == "i3"  ||  "$DESKTOP_SESSION" == "/usr/share/xsessions/i3" ]]; then
+    i3-msg 'exec --no-startup-id gnome-calendar' > /dev/null
+    i3-msg \[app_id='gnome-calendar'\] move container to workspace current, focus > /dev/null
+	elif [[ "$DESKTOP_SESSION" == "sway"  ||  "$DESKTOP_SESSION" == "/usr/share/wayland-sessions/sway" ]]; then
+    swaymsg 'exec --no-startup-id gnome-calendar' > /dev/null
+    swaymsg \[app_id='gnome-calendar'\] move container to workspace current, focus > /dev/null
+  fi
   #i3-msg 'exec --no-startup-id "kitty --title calcurse-dropdown ikhal"' > /dev/null
 esac
 echo "$LABEL$(date "$DATEFMT")"
