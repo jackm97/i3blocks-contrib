@@ -30,13 +30,20 @@ def muted():
     output = proc.communicate()[0]
     return u'true' ==  output.strip().decode("UTF-8")
 
-if clicked():
-    # toggle button click to turn mute on and off
-    mute_toggle()
+if __name__ == "__main__":
+    MUTE_COLOR = "#BE616E"
+    if "MUTE_COLOR" in os.environ.keys():
+        MUTE_COLOR = str(os.environ['MUTE_COLOR'])
+    DEFAULT_COLOR = "#A4B98E"
+    if "DEFAULT_COLOR" in os.environ.keys():
+        DEFAULT_COLOR = str(os.environ['DEFAULT_COLOR'])
+    if clicked():
+        # toggle button click to turn mute on and off
+        mute_toggle()
 
-if muted():
-    RTN = {"full_text":"<span font='Font Awesome 5 Free Solid' color='#BE616E'>\uf1f6</span>"}
-else:
-    RTN = {"full_text":"<span font='Font Awesome 5 Free Solid' color='#A4B98E'>\uf0f3</span>"}
+    if muted():
+        RTN = {"full_text":f"<span font='Font Awesome 5 Free Solid' color='{MUTE_COLOR}'>\uf1f6</span>"}
+    else:
+        RTN = {"full_text":f"<span font='Font Awesome 5 Free Solid' color='{DEFAULT_COLOR}'>\uf0f3</span>"}
 
-print(json.dumps(RTN))
+    print(json.dumps(RTN))
